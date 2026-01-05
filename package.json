@@ -1,13 +1,13 @@
 {
-  "name": "@mantle-blinks/sdk",
+  "name": "@dipansrimany/mlink-sdk",
   "version": "0.1.0",
-  "description": "SDK for building Mantle Blinks - shareable blockchain transaction URLs",
-  "author": "Mantle Blinks",
+  "description": "SDK for building Mantle links - shareable blockchain transaction URLs",
+  "author": "Mlink",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/mantle-blinks-sdk"
+    "url": "https://github.com/dipansrimany2006/mlink-sdk.git"
   },
-  "homepage": "https://github.com/your-username/mantle-blinks-sdk#readme",
+  "homepage": "https://github.com/dipansrimany2006/mlink-sdk#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -68,7 +68,7 @@
   },
   "keywords": [
     "mantle",
-    "blinks",
+    "blockchain links for mantle",
     "blockchain",
     "evm",
     "web3",
