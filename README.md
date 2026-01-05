@@ -1,11 +1,11 @@
-# @mantle-blinks/sdk
+# @mlink/sdk
 
 SDK for building Mantle Blinks - shareable blockchain transaction URLs for Mantle Network.
 
 ## Installation
 
 ```bash
-npm install @mantle-blinks/sdk
+npm install @dipansrimany/mlink-sdk
 ```
 
 ## Quick Start
@@ -13,7 +13,7 @@ npm install @mantle-blinks/sdk
 ### 1. Create an Action
 
 ```typescript
-import { createAction, button, input, parseEther } from '@mantle-blinks/sdk';
+import { createAction, button, input, parseEther } from '@dipansrimany/mlink-sdk';
 
 export const tipAction = createAction({
   title: 'Tip the Developer',
@@ -46,7 +46,7 @@ export const tipAction = createAction({
 
 ```typescript
 // app/api/actions/tip/route.ts
-import { createNextHandler } from '@mantle-blinks/sdk/next';
+import { createNextHandler } from '@dipansrimany/mlink-sdk/next';
 import { tipAction } from './action';
 
 export const { GET, POST, OPTIONS } = createNextHandler(tipAction);
@@ -56,7 +56,7 @@ export const { GET, POST, OPTIONS } = createNextHandler(tipAction);
 
 ```typescript
 import express from 'express';
-import { createExpressHandler } from '@mantle-blinks/sdk/express';
+import { createExpressHandler } from '@dipansrimany/mlink-sdk/express';
 import { tipAction } from './action';
 
 const app = express();
