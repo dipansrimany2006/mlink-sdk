@@ -1,0 +1,79 @@
+{
+  "name": "@mantle-blinks/sdk",
+  "version": "0.1.0",
+  "description": "SDK for building Mantle Blinks - shareable blockchain transaction URLs",
+  "author": "Mantle Blinks",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/mantle-blinks-sdk"
+  },
+  "homepage": "https://github.com/your-username/mantle-blinks-sdk#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./next": {
+      "types": "./dist/adapters/next.d.ts",
+      "import": "./dist/adapters/next.mjs",
+      "require": "./dist/adapters/next.js"
+    },
+    "./express": {
+      "types": "./dist/adapters/express.d.ts",
+      "import": "./dist/adapters/express.mjs",
+      "require": "./dist/adapters/express.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "express": "^4.18.0",
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "express": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "express": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "mantle",
+    "blinks",
+    "blockchain",
+    "evm",
+    "web3",
+    "transactions",
+    "mantle-network"
+  ],
+  "license": "MIT"
+}
