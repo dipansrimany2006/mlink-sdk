@@ -5,6 +5,7 @@ export default defineConfig({
     index: 'src/index.ts',
     'adapters/next': 'src/adapters/next.ts',
     'adapters/express': 'src/adapters/express.ts',
+    'react/index': 'src/react/index.ts',
   },
   format: ['cjs', 'esm'],
   dts: true,
@@ -12,5 +13,5 @@ export default defineConfig({
   sourcemap: true,
   splitting: false,
   treeshake: true,
-  external: ['next', 'express'],
+  external: ['next', 'express', 'react', 'react-dom'],
 });
