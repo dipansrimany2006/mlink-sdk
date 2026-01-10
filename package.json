@@ -1,6 +1,6 @@
 {
   "name": "@dipansrimany/mlink-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "SDK for building Mantle links - shareable blockchain transaction URLs with React UI components",
   "author": "Mlink",
   "repository": {
