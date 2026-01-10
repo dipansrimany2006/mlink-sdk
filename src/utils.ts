@@ -18,7 +18,7 @@ export function createBlinkUrl(
   }
 
   const encodedAction = encodeURIComponent(actionUrl);
-  return `${baseUrl}/blink?${ACTION_QUERY_PARAM}=${encodedAction}`;
+  return `${baseUrl}/mlink?${ACTION_QUERY_PARAM}=${encodedAction}`;
 }
 
 // Parse Blink URL to extract Action URL

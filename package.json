@@ -42,10 +42,10 @@
   ],
   "scripts": {
     "build": "tsup && npm run build:css",
-    "build:css": "cp src/react/styles.css dist/styles.css",
+    "build:css": "node -e \"require('fs').copyFileSync('src/react/styles.css', 'dist/styles.css')\"",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
