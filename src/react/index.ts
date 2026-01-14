@@ -38,4 +38,6 @@ export type {
   ExecutionResult,
   UseMlinkOptions,
   UseExecuteMlinkReturn,
+  RegistrationStatus,
+  RegistrationResult,
 } from './types';

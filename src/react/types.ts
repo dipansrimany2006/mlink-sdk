@@ -4,10 +4,31 @@ import type { ActionMetadata, EVMTransaction, ChainConfig } from '../types';
 export type MlinkStatus =
   | 'idle'
   | 'loading'
+  | 'validating'
   | 'ready'
   | 'executing'
   | 'success'
-  | 'error';
+  | 'error'
+  | 'unregistered'
+  | 'blocked';
+
+// Registration status from registry
+export type RegistrationStatus = 'pending' | 'approved' | 'blocked' | null;
+
+// Registration validation result
+export interface RegistrationResult {
+  isRegistered: boolean;
+  status: RegistrationStatus;
+  error?: string;
+  warning?: string;
+  mlink?: {
+    mlinkId: string;
+    name: string;
+    description: string;
+    icon: string;
+    status: RegistrationStatus;
+  };
+}
 
 // Mlink instance returned by useMlink
 export interface MlinkInstance {
@@ -16,6 +37,9 @@ export interface MlinkInstance {
   error: string | null;
   url: string;
   refresh: () => Promise<void>;
+  // Registration info
+  registration: RegistrationResult | null;
+  isRegistered: boolean;
 }
 
 // Adapter for wallet interactions
@@ -99,6 +123,14 @@ export interface MlinkProps {
   onError?: (error: string) => void;
   className?: string;
   stylePreset?: 'default' | 'compact' | 'minimal';
+  /** Registry URL for validation (defaults to https://mlinks-fe.vercel.app) */
+  registryUrl?: string;
+  /** Whether to require registration for the mlink to work (defaults to true) */
+  requireRegistration?: boolean;
+  /** Whether to allow pending mlinks (defaults to true) */
+  allowPending?: boolean;
+  /** Whether to allow blocked mlinks (defaults to false) */
+  allowBlocked?: boolean;
 }
 
 // Action button component props
@@ -124,6 +156,14 @@ export interface ExecutionResult {
 export interface UseMlinkOptions {
   refreshInterval?: number;
   enabled?: boolean;
+  /** Registry URL for validation (defaults to https://mlinks-fe.vercel.app) */
+  registryUrl?: string;
+  /** Whether to require registration for the mlink to work (defaults to true) */
+  requireRegistration?: boolean;
+  /** Whether to allow pending mlinks (defaults to true) */
+  allowPending?: boolean;
+  /** Whether to allow blocked mlinks (defaults to false) */
+  allowBlocked?: boolean;
 }
 
 // Hook return type for useExecuteMlink

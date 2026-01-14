@@ -22,11 +22,20 @@ export function Mlink({
   onError,
   className = '',
   stylePreset = 'default',
+  registryUrl,
+  requireRegistration = true,
+  allowPending = true,
+  allowBlocked = false,
 }: MlinkProps) {
   const context = useMlinkContext();
   const resolvedTheme = themeProp ? resolveTheme(themeProp) : context.theme;
 
-  const { status: fetchStatus, metadata, error: fetchError } = useMlink(url);
+  const { status: fetchStatus, metadata, error: fetchError, registration } = useMlink(url, {
+    registryUrl,
+    requireRegistration,
+    allowPending,
+    allowBlocked,
+  });
 
   const {
     execute,
@@ -115,11 +124,32 @@ export function Mlink({
     return metadata?.links?.actions && metadata.links.actions.length > 0;
   }, [metadata]);
 
-  // Loading state
-  if (fetchStatus === 'loading') {
+  // Loading/Validating state
+  if (fetchStatus === 'loading' || fetchStatus === 'validating') {
     return (
       <MlinkContainer theme={resolvedTheme} className={className} preset={stylePreset}>
         <MlinkSkeleton />
+      </MlinkContainer>
+    );
+  }
+
+  // Unregistered state
+  if (fetchStatus === 'unregistered') {
+    return (
+      <MlinkContainer theme={resolvedTheme} className={className} preset={stylePreset}>
+        <MlinkUnregistered
+          message={fetchError || 'This MLink is not registered.'}
+          registryUrl={registryUrl}
+        />
+      </MlinkContainer>
+    );
+  }
+
+  // Blocked state
+  if (fetchStatus === 'blocked') {
+    return (
+      <MlinkContainer theme={resolvedTheme} className={className} preset={stylePreset}>
+        <MlinkBlocked message={fetchError || 'This MLink has been blocked.'} />
       </MlinkContainer>
     );
   }
@@ -504,6 +534,51 @@ function MlinkError({ message }: { message: string }) {
     <div className="mlink-error">
       <div className="mlink-error-icon">!</div>
       <p className="mlink-error-message">{message}</p>
+    </div>
+  );
+}
+
+// Unregistered component
+function MlinkUnregistered({ message, registryUrl }: { message: string; registryUrl?: string }) {
+  const registerUrl = registryUrl
+    ? `${registryUrl}/dashboard/register`
+    : 'https://mlinks-fe.vercel.app/dashboard/register';
+
+  return (
+    <div className="mlink-unregistered">
+      <div className="mlink-unregistered-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      </div>
+      <h3 className="mlink-unregistered-title">Unregistered MLink</h3>
+      <p className="mlink-unregistered-message">{message}</p>
+      <a
+        href={registerUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mlink-button"
+      >
+        Register MLink
+      </a>
+    </div>
+  );
+}
+
+// Blocked component
+function MlinkBlocked({ message }: { message: string }) {
+  return (
+    <div className="mlink-blocked">
+      <div className="mlink-blocked-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+        </svg>
+      </div>
+      <h3 className="mlink-blocked-title">Blocked MLink</h3>
+      <p className="mlink-blocked-message">{message}</p>
     </div>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ActionMetadata } from '../types';
-import type { MlinkInstance, MlinkStatus, UseMlinkOptions } from './types';
+import type { MlinkInstance, MlinkStatus, UseMlinkOptions, RegistrationResult } from './types';
 import { parseBlinkUrl } from '../utils';
 import { validateActionMetadata } from '../validators';
+import { REGISTRY_URL, REGISTRY_VALIDATE_ENDPOINT } from '../constants';
 
 const DEFAULT_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
@@ -12,18 +13,52 @@ export function useMlink(
   url: string,
   options: UseMlinkOptions = {}
 ): MlinkInstance {
-  const { refreshInterval = DEFAULT_REFRESH_INTERVAL, enabled = true } =
-    options;
+  const {
+    refreshInterval = DEFAULT_REFRESH_INTERVAL,
+    enabled = true,
+    registryUrl = REGISTRY_URL,
+    requireRegistration = true,
+    allowPending = true,
+    allowBlocked = false,
+  } = options;
 
   const [status, setStatus] = useState<MlinkStatus>('idle');
   const [metadata, setMetadata] = useState<ActionMetadata | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [registration, setRegistration] = useState<RegistrationResult | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Extract action URL from mlink URL if needed
   const actionUrl = parseBlinkUrl(url) || url;
+
+  // Validate against registry
+  const validateRegistration = useCallback(async (): Promise<RegistrationResult | null> => {
+    if (!actionUrl || !requireRegistration) return null;
+
+    try {
+      const validateUrl = `${registryUrl}${REGISTRY_VALIDATE_ENDPOINT}?url=${encodeURIComponent(actionUrl)}`;
+      const response = await fetch(validateUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      return data as RegistrationResult;
+    } catch (err) {
+      console.error('Registry validation error:', err);
+      // If registry is unreachable, we can either fail or allow
+      // For now, we'll return a failure result
+      return {
+        isRegistered: false,
+        status: null,
+        error: 'Unable to validate against registry. Please try again later.',
+      };
+    }
+  }, [actionUrl, registryUrl, requireRegistration]);
 
   const fetchMetadata = useCallback(async () => {
     if (!actionUrl || !enabled) return;
@@ -35,10 +70,42 @@ export function useMlink(
 
     abortControllerRef.current = new AbortController();
 
-    setStatus('loading');
+    setStatus('validating');
     setError(null);
 
     try {
+      // Step 1: Validate against registry (if required)
+      if (requireRegistration) {
+        const registrationResult = await validateRegistration();
+        setRegistration(registrationResult);
+
+        if (registrationResult) {
+          // Check if mlink is registered
+          if (!registrationResult.isRegistered) {
+            setError(registrationResult.error || 'This MLink is not registered.');
+            setStatus('unregistered');
+            return;
+          }
+
+          // Check if mlink is blocked
+          if (registrationResult.status === 'blocked' && !allowBlocked) {
+            setError('This MLink has been blocked for policy violations.');
+            setStatus('blocked');
+            return;
+          }
+
+          // Check if mlink is pending (and if we allow pending)
+          if (registrationResult.status === 'pending' && !allowPending) {
+            setError('This MLink is pending review and not yet available.');
+            setStatus('error');
+            return;
+          }
+        }
+      }
+
+      // Step 2: Fetch action metadata
+      setStatus('loading');
+
       const response = await fetch(actionUrl, {
         method: 'GET',
         headers: {
@@ -71,7 +138,7 @@ export function useMlink(
       setError(errorMessage);
       setStatus('error');
     }
-  }, [actionUrl, enabled]);
+  }, [actionUrl, enabled, requireRegistration, validateRegistration, allowBlocked, allowPending]);
 
   // Initial fetch
   useEffect(() => {
@@ -107,5 +174,7 @@ export function useMlink(
     error,
     url: actionUrl,
     refresh: fetchMetadata,
+    registration,
+    isRegistered: registration?.isRegistered ?? false,
   };
 }

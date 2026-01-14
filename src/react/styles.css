@@ -502,6 +502,63 @@
   background: var(--mlink-border-color);
 }
 
+/* Unregistered state */
+.mlink-unregistered {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.mlink-unregistered-icon {
+  margin: 0 auto 16px;
+  color: var(--mlink-warning, #f59e0b);
+}
+
+.mlink-unregistered-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mlink-text-primary);
+}
+
+.mlink-unregistered-message {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: var(--mlink-text-secondary);
+  line-height: 1.5;
+}
+
+.mlink-unregistered .mlink-button {
+  display: inline-flex;
+  width: auto;
+  padding: 12px 24px;
+  text-decoration: none;
+}
+
+/* Blocked state */
+.mlink-blocked {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.mlink-blocked-icon {
+  margin: 0 auto 16px;
+  color: var(--mlink-error, #ef4444);
+}
+
+.mlink-blocked-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mlink-error, #ef4444);
+}
+
+.mlink-blocked-message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--mlink-text-secondary);
+  line-height: 1.5;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .mlink-container {

@@ -31,3 +31,7 @@ export const DEFAULT_CHAIN = MANTLE_SEPOLIA;
 export const BLINK_BASE_URL = 'https://blink.mantle.xyz';
 
 export const ACTION_QUERY_PARAM = 'action';
+
+// Registry URL for validation
+export const REGISTRY_URL = 'https://mlinks-fe.vercel.app';
+export const REGISTRY_VALIDATE_ENDPOINT = '/api/registry/validate';
