@@ -320,6 +320,188 @@
   text-decoration: underline;
 }
 
+/* =============================================================================
+   SOLANA-STYLE LINKED ACTIONS & PARAMETERS
+   ============================================================================= */
+
+/* Quick action buttons (grid layout) */
+.mlink-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mlink-button-quick {
+  padding: 10px 12px;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.mlink-button-custom {
+  background: var(--mlink-bg-secondary);
+  color: var(--mlink-text-primary);
+  border: 1px solid var(--mlink-border-color);
+}
+
+.mlink-button-custom:hover:not(:disabled) {
+  background: var(--mlink-border-color);
+}
+
+/* Parameters container */
+.mlink-params {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Parameter group */
+.mlink-param-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Parameter label */
+.mlink-param-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mlink-text-primary);
+}
+
+.mlink-required {
+  color: var(--mlink-error);
+  margin-left: 2px;
+}
+
+/* Parameter hint */
+.mlink-param-hint {
+  font-size: 11px;
+  color: var(--mlink-text-secondary);
+  margin-top: 2px;
+}
+
+/* Select dropdown */
+.mlink-select {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--mlink-input-text);
+  background: var(--mlink-input-bg);
+  border: 1px solid var(--mlink-input-border);
+  border-radius: var(--mlink-input-radius);
+  outline: none;
+  cursor: pointer;
+  min-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.mlink-select:focus {
+  border-color: var(--mlink-button-bg);
+  box-shadow: 0 0 0 3px rgba(101, 217, 228, 0.1);
+}
+
+.mlink-select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Textarea */
+.mlink-textarea {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--mlink-input-text);
+  background: var(--mlink-input-bg);
+  border: 1px solid var(--mlink-input-border);
+  border-radius: var(--mlink-input-radius);
+  outline: none;
+  min-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.mlink-textarea:focus {
+  border-color: var(--mlink-button-bg);
+  box-shadow: 0 0 0 3px rgba(101, 217, 228, 0.1);
+}
+
+.mlink-textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Radio group */
+.mlink-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mlink-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--mlink-text-primary);
+  cursor: pointer;
+}
+
+.mlink-radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mlink-button-bg);
+  cursor: pointer;
+}
+
+/* Checkbox group */
+.mlink-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mlink-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--mlink-text-primary);
+  cursor: pointer;
+}
+
+.mlink-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mlink-button-bg);
+  cursor: pointer;
+}
+
+/* Divider for separating quick actions from custom */
+.mlink-actions-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  color: var(--mlink-text-secondary);
+  font-size: 12px;
+}
+
+.mlink-actions-divider::before,
+.mlink-actions-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--mlink-border-color);
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .mlink-container {
@@ -335,5 +517,14 @@
 
   .mlink-input-group .mlink-button {
     width: 100%;
+  }
+
+  .mlink-quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mlink-radio-group,
+  .mlink-checkbox-group {
+    gap: 12px;
   }
 }

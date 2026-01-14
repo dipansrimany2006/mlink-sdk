@@ -7,7 +7,7 @@ import type {
   ExecutionResult,
   UseExecuteMlinkReturn,
 } from './types';
-import type { TransactionResponse } from '../types';
+import type { TransactionResponse, EVMTransaction } from '../types';
 import { validateTransactionResponse } from '../validators';
 
 interface UseExecuteMlinkOptions {
@@ -17,9 +17,20 @@ interface UseExecuteMlinkOptions {
   onError?: (error: string) => void;
 }
 
+/**
+ * Enhanced UseExecuteMlinkReturn with data parameter support
+ */
+export interface UseExecuteMlinkReturnEnhanced extends Omit<UseExecuteMlinkReturn, 'execute'> {
+  execute: (
+    action: string,
+    input?: string,
+    data?: Record<string, string | string[]>
+  ) => Promise<ExecutionResult>;
+}
+
 export function useExecuteMlink(
   options: UseExecuteMlinkOptions
-): UseExecuteMlinkReturn {
+): UseExecuteMlinkReturnEnhanced {
   const { adapter, actionUrl, onSuccess, onError } = options;
 
   const [status, setStatus] = useState<MlinkStatus>('ready');
@@ -33,7 +44,11 @@ export function useExecuteMlink(
   }, []);
 
   const execute = useCallback(
-    async (action: string, input?: string): Promise<ExecutionResult> => {
+    async (
+      action: string,
+      input?: string,
+      data?: Record<string, string | string[]>
+    ): Promise<ExecutionResult> => {
       setStatus('executing');
       setError(null);
       setTxHash(null);
@@ -55,35 +70,44 @@ export function useExecuteMlink(
             account,
             action,
             input,
+            data, // Include parameter data
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+            errorData.error?.message || errorData.message || `HTTP ${response.status}: ${response.statusText}`
           );
         }
 
-        const data: TransactionResponse = await response.json();
+        const responseData: TransactionResponse = await response.json();
 
-        // Validate response
-        const validation = validateTransactionResponse(data);
-        if (!validation.success) {
-          throw new Error(`Invalid response: ${validation.error}`);
+        // Get transactions (support both single and multiple)
+        const transactions: EVMTransaction[] = responseData.transactions
+          ? responseData.transactions
+          : responseData.transaction
+          ? [responseData.transaction]
+          : [];
+
+        if (transactions.length === 0) {
+          throw new Error('No transaction returned from action');
         }
 
-        // Sign and send transaction
-        const hash = await adapter.signAndSendTransaction(data.transaction);
+        // Execute all transactions sequentially
+        let lastHash = '';
+        for (const tx of transactions) {
+          lastHash = await adapter.signAndSendTransaction(tx);
+        }
 
-        setTxHash(hash);
+        setTxHash(lastHash);
         setStatus('success');
-        onSuccess?.(hash, action);
+        onSuccess?.(lastHash, action);
 
         return {
           success: true,
-          txHash: hash,
-          message: data.message,
+          txHash: lastHash,
+          message: responseData.message,
         };
       } catch (err) {
         const errorMessage =

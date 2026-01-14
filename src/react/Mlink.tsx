@@ -1,12 +1,18 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { MlinkProps, MlinkTheme } from './types';
-import type { ActionButton } from '../types';
+import type {
+  ActionButton,
+  LinkedAction,
+  TypedActionParameter,
+  ActionParameterSelectable,
+} from '../types';
 import { useMlink } from './useMlink';
 import { useExecuteMlink } from './useExecuteMlink';
 import { useMlinkContext } from './MlinkProvider';
 import { resolveTheme, themeToCSS } from './themes';
+import { buildHref, hasParameters, isSelectableParam } from '../builders';
 
 export function Mlink({
   url,
@@ -35,12 +41,24 @@ export function Mlink({
     onError,
   });
 
+  // State for legacy inputs
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
+
+  // State for linked action parameters
+  const [paramValues, setParamValues] = useState<Record<string, string | string[]>>({});
+
+  // Currently selected linked action (if showing parameter form)
+  const [selectedLinkedAction, setSelectedLinkedAction] = useState<LinkedAction | null>(null);
 
   const handleInputChange = useCallback((actionValue: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [actionValue]: value }));
   }, []);
 
+  const handleParamChange = useCallback((name: string, value: string | string[]) => {
+    setParamValues((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  // Handle legacy action execution
   const handleAction = useCallback(
     async (action: ActionButton) => {
       const input = action.type === 'input' ? inputValues[action.value] : undefined;
@@ -48,6 +66,54 @@ export function Mlink({
     },
     [execute, inputValues]
   );
+
+  // Handle linked action click
+  const handleLinkedAction = useCallback(
+    async (action: LinkedAction) => {
+      if (hasParameters(action)) {
+        // Show parameter form
+        setSelectedLinkedAction(action);
+        // Initialize param values with defaults
+        const defaults: Record<string, string | string[]> = {};
+        action.parameters?.forEach((param) => {
+          if (isSelectableParam(param)) {
+            const selectedOption = param.options.find((o) => o.selected);
+            if (selectedOption) {
+              defaults[param.name] = param.type === 'checkbox' ? [selectedOption.value] : selectedOption.value;
+            }
+          }
+        });
+        setParamValues(defaults);
+      } else {
+        // Execute directly with href
+        await execute(action.href, undefined, {});
+      }
+    },
+    [execute]
+  );
+
+  // Execute linked action with parameters
+  const handleExecuteWithParams = useCallback(async () => {
+    if (!selectedLinkedAction) return;
+
+    // Build the final href with parameter values
+    const finalHref = buildHref(selectedLinkedAction.href, paramValues);
+
+    await execute(finalHref, undefined, paramValues);
+    setSelectedLinkedAction(null);
+    setParamValues({});
+  }, [selectedLinkedAction, paramValues, execute]);
+
+  // Cancel parameter form
+  const handleCancelParams = useCallback(() => {
+    setSelectedLinkedAction(null);
+    setParamValues({});
+  }, []);
+
+  // Check if we have linked actions
+  const hasLinkedActions = useMemo(() => {
+    return metadata?.links?.actions && metadata.links.actions.length > 0;
+  }, [metadata]);
 
   // Loading state
   if (fetchStatus === 'loading') {
@@ -80,6 +146,51 @@ export function Mlink({
     );
   }
 
+  // Parameter form for linked action
+  if (selectedLinkedAction && hasParameters(selectedLinkedAction)) {
+    return (
+      <MlinkContainer theme={resolvedTheme} className={className} preset={stylePreset}>
+        <div className="mlink-content">
+          <h3 className="mlink-title">{selectedLinkedAction.label}</h3>
+          <p className="mlink-description">Fill in the details below</p>
+        </div>
+
+        {execError && (
+          <div className="mlink-error-banner">{execError}</div>
+        )}
+
+        <div className="mlink-params">
+          {selectedLinkedAction.parameters?.map((param) => (
+            <ParameterInput
+              key={param.name}
+              param={param}
+              value={paramValues[param.name] || ''}
+              onChange={(value) => handleParamChange(param.name, value)}
+              disabled={execStatus === 'executing'}
+            />
+          ))}
+        </div>
+
+        <div className="mlink-actions">
+          <button
+            className="mlink-button"
+            onClick={handleExecuteWithParams}
+            disabled={execStatus === 'executing'}
+          >
+            {execStatus === 'executing' ? <MlinkSpinner /> : selectedLinkedAction.label}
+          </button>
+          <button
+            className="mlink-button mlink-button-secondary"
+            onClick={handleCancelParams}
+            disabled={execStatus === 'executing'}
+          >
+            Back
+          </button>
+        </div>
+      </MlinkContainer>
+    );
+  }
+
   return (
     <MlinkContainer theme={resolvedTheme} className={className} preset={stylePreset}>
       {/* Icon */}
@@ -100,23 +211,259 @@ export function Mlink({
         </div>
       )}
 
-      {/* Actions */}
-      <div className="mlink-actions">
-        {metadata.actions.map((action, index) => (
-          <ActionButtonComponent
-            key={`${action.value}-${index}`}
-            action={action}
-            inputValue={inputValues[action.value] || ''}
-            onInputChange={(value) => handleInputChange(action.value, value)}
-            onExecute={() => handleAction(action)}
-            loading={execStatus === 'executing'}
-            disabled={metadata.disabled === true || action.disabled === true}
-          />
-        ))}
-      </div>
+      {/* Linked Actions (Solana-style) */}
+      {hasLinkedActions && (
+        <div className="mlink-actions">
+          {/* Quick action buttons (no parameters) */}
+          <div className="mlink-quick-actions">
+            {metadata.links!.actions
+              .filter((a) => !hasParameters(a))
+              .map((action, index) => (
+                <button
+                  key={`${action.href}-${index}`}
+                  className="mlink-button mlink-button-quick"
+                  onClick={() => handleLinkedAction(action)}
+                  disabled={metadata.disabled || action.disabled || execStatus === 'executing'}
+                >
+                  {execStatus === 'executing' ? <MlinkSpinner /> : action.label}
+                </button>
+              ))}
+          </div>
+
+          {/* Actions with parameters */}
+          {metadata.links!.actions
+            .filter((a) => hasParameters(a))
+            .map((action, index) => (
+              <button
+                key={`param-${action.href}-${index}`}
+                className="mlink-button mlink-button-custom"
+                onClick={() => handleLinkedAction(action)}
+                disabled={metadata.disabled || action.disabled || execStatus === 'executing'}
+              >
+                {action.label}
+              </button>
+            ))}
+        </div>
+      )}
+
+      {/* Legacy Actions (backwards compatible) */}
+      {!hasLinkedActions && metadata.actions && (
+        <div className="mlink-actions">
+          {metadata.actions.map((action, index) => (
+            <ActionButtonComponent
+              key={`${action.value}-${index}`}
+              action={action}
+              inputValue={inputValues[action.value] || ''}
+              onInputChange={(value) => handleInputChange(action.value, value)}
+              onExecute={() => handleAction(action)}
+              loading={execStatus === 'executing'}
+              disabled={metadata.disabled === true || action.disabled === true}
+            />
+          ))}
+        </div>
+      )}
     </MlinkContainer>
   );
 }
+
+// =============================================================================
+// PARAMETER INPUT COMPONENT
+// =============================================================================
+
+interface ParameterInputProps {
+  param: TypedActionParameter;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
+  disabled: boolean;
+}
+
+function ParameterInput({ param, value, onChange, disabled }: ParameterInputProps) {
+  const strValue = Array.isArray(value) ? value.join(',') : value;
+
+  if (isSelectableParam(param)) {
+    return (
+      <SelectableParamInput
+        param={param}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+      />
+    );
+  }
+
+  // Map parameter type to input type
+  const inputType = getInputType(param.type);
+
+  if (param.type === 'textarea') {
+    return (
+      <div className="mlink-param-group">
+        {param.label && <label className="mlink-param-label">{param.label}</label>}
+        <textarea
+          className="mlink-textarea"
+          value={strValue}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          required={param.required}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mlink-param-group">
+      {param.label && (
+        <label className="mlink-param-label">
+          {param.label}
+          {param.required && <span className="mlink-required">*</span>}
+        </label>
+      )}
+      <input
+        type={inputType}
+        className="mlink-input"
+        value={strValue}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        required={param.required}
+        pattern={param.pattern}
+        min={param.min?.toString()}
+        max={param.max?.toString()}
+        placeholder={param.label || param.name}
+      />
+      {param.patternDescription && (
+        <span className="mlink-param-hint">{param.patternDescription}</span>
+      )}
+    </div>
+  );
+}
+
+function SelectableParamInput({
+  param,
+  value,
+  onChange,
+  disabled,
+}: {
+  param: ActionParameterSelectable;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
+  disabled: boolean;
+}) {
+  const arrayValue = Array.isArray(value) ? value : value ? [value] : [];
+
+  if (param.type === 'select') {
+    return (
+      <div className="mlink-param-group">
+        {param.label && (
+          <label className="mlink-param-label">
+            {param.label}
+            {param.required && <span className="mlink-required">*</span>}
+          </label>
+        )}
+        <select
+          className="mlink-select"
+          value={arrayValue[0] || ''}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          required={param.required}
+        >
+          <option value="">Select {param.label || param.name}</option>
+          {param.options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (param.type === 'radio') {
+    return (
+      <div className="mlink-param-group">
+        {param.label && (
+          <label className="mlink-param-label">
+            {param.label}
+            {param.required && <span className="mlink-required">*</span>}
+          </label>
+        )}
+        <div className="mlink-radio-group">
+          {param.options.map((opt) => (
+            <label key={opt.value} className="mlink-radio-label">
+              <input
+                type="radio"
+                name={param.name}
+                value={opt.value}
+                checked={arrayValue[0] === opt.value}
+                onChange={(e) => onChange(e.target.value)}
+                disabled={disabled}
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (param.type === 'checkbox') {
+    return (
+      <div className="mlink-param-group">
+        {param.label && (
+          <label className="mlink-param-label">
+            {param.label}
+            {param.required && <span className="mlink-required">*</span>}
+          </label>
+        )}
+        <div className="mlink-checkbox-group">
+          {param.options.map((opt) => (
+            <label key={opt.value} className="mlink-checkbox-label">
+              <input
+                type="checkbox"
+                value={opt.value}
+                checked={arrayValue.includes(opt.value)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    onChange([...arrayValue, opt.value]);
+                  } else {
+                    onChange(arrayValue.filter((v) => v !== opt.value));
+                  }
+                }}
+                disabled={disabled}
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function getInputType(paramType?: string): string {
+  switch (paramType) {
+    case 'number':
+    case 'amount':
+      return 'number';
+    case 'email':
+      return 'email';
+    case 'url':
+      return 'url';
+    case 'date':
+      return 'date';
+    case 'datetime-local':
+      return 'datetime-local';
+    case 'address':
+    case 'token':
+    case 'text':
+    default:
+      return 'text';
+  }
+}
+
+// =============================================================================
+// HELPER COMPONENTS
+// =============================================================================
 
 // Container component
 interface MlinkContainerProps {
@@ -184,7 +531,7 @@ function MlinkSuccess({ message, txHash, onReset }: MlinkSuccessProps) {
   );
 }
 
-// Action button component
+// Action button component (legacy)
 interface ActionButtonComponentProps {
   action: ActionButton;
   inputValue: string;

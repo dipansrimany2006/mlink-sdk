@@ -1,4 +1,8 @@
-// Types
+// =============================================================================
+// TYPES
+// =============================================================================
+
+// Core types
 export type {
   ActionType,
   ActionButton,
@@ -14,20 +18,84 @@ export type {
   ValidationResult,
 } from './types';
 
-// Builders
-export { createAction, button, input } from './builders';
-export type { Action } from './builders';
+// Solana-style linked action types
+export type {
+  ActionParameterType,
+  SelectableParameterType,
+  ActionParameterOption,
+  ActionParameterBase,
+  ActionParameter,
+  ActionParameterSelectable,
+  TypedActionParameter,
+  LinkedActionType,
+  LinkedAction,
+  ActionLinks,
+  PostNextActionLink,
+  InlineNextActionLink,
+  NextActionLink,
+} from './types';
 
-// Validators
+// =============================================================================
+// BUILDERS
+// =============================================================================
+
+// Core builders
+export { createAction, button, input } from './builders';
+export type { Action, ExtendedActionDefinition } from './builders';
+
+// Solana-style linked action builders
+export {
+  linkedAction,
+  actionButton,
+  createLinks,
+  buildHref,
+  extractParams,
+  hasParameters,
+  isSelectableParam,
+} from './builders';
+
+// Parameter builders
+export {
+  textParam,
+  numberParam,
+  amountParam,
+  addressParam,
+  selectParam,
+  radioParam,
+  checkboxParam,
+  dateParam,
+  textareaParam,
+  option,
+} from './builders';
+
+// =============================================================================
+// VALIDATORS
+// =============================================================================
+
 export {
   validateActionMetadata,
   validateTransactionRequest,
   validateTransactionResponse,
+  validateLinkedAction,
+  validateParameter,
+  validateParameterValues,
   isValidAddress,
   isValidHex,
+} from './validators';
+
+// Zod schemas
+export {
   ActionMetadataSchema,
   TransactionRequestSchema,
   TransactionResponseSchema,
+  ActionButtonSchema,
+  LinkedActionSchema,
+  ActionLinksSchema,
+  ActionParameterSchema,
+  ActionParameterSelectableSchema,
+  TypedActionParameterSchema,
+  ActionParameterOptionSchema,
+  NextActionLinkSchema,
 } from './validators';
 
 // Utilities

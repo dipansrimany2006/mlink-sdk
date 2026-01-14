@@ -7,6 +7,7 @@ export { MlinkProvider, useMlinkContext } from './MlinkProvider';
 // Hooks
 export { useMlink } from './useMlink';
 export { useExecuteMlink } from './useExecuteMlink';
+export type { UseExecuteMlinkReturnEnhanced } from './useExecuteMlink';
 export {
   useMlinkWagmiAdapter,
   useMlinkEthersAdapter,
