@@ -542,7 +542,7 @@ function MlinkError({ message }: { message: string }) {
 function MlinkUnregistered({ message, registryUrl }: { message: string; registryUrl?: string }) {
   const registerUrl = registryUrl
     ? `${registryUrl}/dashboard/register`
-    : 'https://mlinks-fe.vercel.app/dashboard/register';
+    : 'https://mlink-client.vercel.app/dashboard/register';
 
   return (
     <div className="mlink-unregistered">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ActionMetadata } from '../types';
 import type { MlinkInstance, MlinkStatus, UseMlinkOptions, RegistrationResult } from './types';
-import { parseBlinkUrl } from '../utils';
+import { parseMlinkUrl } from '../utils';
 import { validateActionMetadata } from '../validators';
 import { REGISTRY_URL, REGISTRY_VALIDATE_ENDPOINT } from '../constants';
 
@@ -31,7 +31,7 @@ export function useMlink(
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Extract action URL from mlink URL if needed
-  const actionUrl = parseBlinkUrl(url) || url;
+  const actionUrl = parseMlinkUrl(url) || url;
 
   // Validate against registry
   const validateRegistration = useCallback(async (): Promise<RegistrationResult | null> => {

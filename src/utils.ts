@@ -1,14 +1,14 @@
 import {
-  BLINK_BASE_URL,
+  MLINK_BASE_URL,
   ACTION_QUERY_PARAM,
   SUPPORTED_CHAINS,
 } from './constants';
 import type { ChainConfig } from './types';
 
-// Create Blink URL from Action URL
-export function createBlinkUrl(
+// Create Mlink URL from Action URL
+export function createMlinkUrl(
   actionUrl: string,
-  baseUrl: string = BLINK_BASE_URL
+  baseUrl: string = MLINK_BASE_URL
 ): string {
   // Validate actionUrl is a valid URL
   try {
@@ -21,10 +21,10 @@ export function createBlinkUrl(
   return `${baseUrl}/mlink?${ACTION_QUERY_PARAM}=${encodedAction}`;
 }
 
-// Parse Blink URL to extract Action URL
-export function parseBlinkUrl(blinkUrl: string): string | null {
+// Parse Mlink URL to extract Action URL
+export function parseMlinkUrl(mlinkUrl: string): string | null {
   try {
-    const url = new URL(blinkUrl);
+    const url = new URL(mlinkUrl);
     const actionParam = url.searchParams.get(ACTION_QUERY_PARAM);
 
     if (!actionParam) return null;
@@ -40,9 +40,9 @@ export function parseBlinkUrl(blinkUrl: string): string | null {
   }
 }
 
-// Check if URL is a valid Blink URL
-export function isBlinkUrl(url: string): boolean {
-  return parseBlinkUrl(url) !== null;
+// Check if URL is a valid Mlink URL
+export function isMlinkUrl(url: string): boolean {
+  return parseMlinkUrl(url) !== null;
 }
 
 // Convert human readable amount to wei string

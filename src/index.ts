@@ -100,9 +100,9 @@ export {
 
 // Utilities
 export {
-  createBlinkUrl,
-  parseBlinkUrl,
-  isBlinkUrl,
+  createMlinkUrl,
+  parseMlinkUrl,
+  isMlinkUrl,
   parseEther,
   formatEther,
   shortenAddress,
@@ -117,7 +117,7 @@ export {
   MANTLE_SEPOLIA,
   SUPPORTED_CHAINS,
   DEFAULT_CHAIN,
-  BLINK_BASE_URL,
+  MLINK_BASE_URL,
   ACTION_QUERY_PARAM,
   REGISTRY_URL,
   REGISTRY_VALIDATE_ENDPOINT,
